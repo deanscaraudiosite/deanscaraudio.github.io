@@ -241,28 +241,49 @@
     syncUrl();
     renderCategories();
     renderChips();
+    const selectedVehicle = Commerce.vehicle?.current || null;
+    const isVehicleProductView =
+      Boolean(selectedVehicle) && state.compatibility === "compatible";
     const products = sortProducts(Commerce.catalog.products.filter(matchProduct));
     grid.replaceChildren();
-    heading.textContent = categoryLabel();
+    heading.textContent = isVehicleProductView
+      ? `Products for ${Commerce.vehicle.getLabel(selectedVehicle)}`
+      : categoryLabel();
     count.textContent = `${products.length} ${products.length === 1 ? "product family" : "product families"}`;
     if (!products.length) {
       const empty = Commerce.element("div", {
         className: "dca-commerce-empty-results",
       });
       const copy = Commerce.element("div");
-      copy.append(
-        Commerce.element("h3", { text: "No products match those filters." }),
-        Commerce.element("p", {
-          text: "Try a broader category or compatibility status. Unknown results are intentionally retained unless you filter them out.",
-        }),
-      );
-      const button = Commerce.element("button", {
-        className: "dca-commerce-button dca-commerce-button-primary",
-        text: "Clear filters",
-        attrs: { type: "button" },
-      });
-      button.addEventListener("click", clearFilters);
-      copy.append(button);
+      if (isVehicleProductView) {
+        copy.append(
+          Commerce.element("h3", {
+            text: "No verified products are currently listed for this vehicle.",
+          }),
+          Commerce.element("p", {
+            text: `Verified fitment for ${Commerce.vehicle.getLabel(selectedVehicle)} is still shown above.`,
+          }),
+          Commerce.element("a", {
+            className: "dca-commerce-button dca-commerce-button-primary",
+            text: "Choose another vehicle",
+            attrs: { href: "index.html#fitment-finder" },
+          }),
+        );
+      } else {
+        copy.append(
+          Commerce.element("h3", { text: "No products match those filters." }),
+          Commerce.element("p", {
+            text: "Try a broader category, brand, price range, or fitment status.",
+          }),
+        );
+        const button = Commerce.element("button", {
+          className: "dca-commerce-button dca-commerce-button-primary",
+          text: "Clear filters",
+          attrs: { type: "button" },
+        });
+        button.addEventListener("click", clearFilters);
+        copy.append(button);
+      }
       empty.append(copy);
       grid.append(empty);
       return;

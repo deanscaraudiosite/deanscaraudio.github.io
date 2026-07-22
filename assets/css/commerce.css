@@ -3192,3 +3192,51 @@ form#fitment-finder {
   .dca-commerce-catalog-filters-toolbar .dca-commerce-select { flex: 1 1 46%; min-width: 0; }
   .dca-toolbar-search { flex: 1 1 100%; }
 }
+
+/* Verified vehicle audio fitment */
+.dca-specs-card {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+.dca-specs-header { margin-bottom: 12px; }
+.dca-specs-header h2 { margin: 0; font-size: 18px; }
+.dca-specs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0;
+}
+.dca-specs-tile {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.025);
+}
+.dca-specs-tile-label {
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.dca-specs-tile-value {
+  margin: 0;
+  overflow-wrap: anywhere;
+  color: var(--foreground);
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+.dca-specs-tile.is-unavailable .dca-specs-tile-value {
+  color: var(--muted);
+  font-weight: 600;
+}
+@media (max-width: 640px) {
+  .dca-specs-grid { grid-template-columns: 1fr; }
+}

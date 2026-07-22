@@ -66,6 +66,8 @@ const PRODUCT_SOURCE_HOSTS = new Set([
 const FITMENT_SOURCE_HOSTS = new Set([
   "www.metraonline.com",
   "metraonline.com",
+  "www.scosche.com",
+  "scosche.com",
 ]);
 
 const isHttpsFrom = (value, allowedHosts) => {

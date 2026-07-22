@@ -1,140 +1,69 @@
-(() => {
+(function () {
+  "use strict";
+
   const Commerce = window.DCACommerce;
   if (!Commerce) return;
+  const audioFitment = window.DCA_VEHICLE_AUDIO_FITMENT;
+  const unavailableText = audioFitment?.unavailableText || "Fitment information unavailable";
 
-  const getVehicleSpecs = (vehicle) => {
-    const make = (vehicle.makeName || "").toLowerCase();
-    const model = (vehicle.modelName || "").toLowerCase();
-
-    // Default generic specs
-    const specs = {
-      radioSize: "Double-DIN",
-      frontSpeaker: "6.5\"",
-      rearSpeaker: "6.5\"",
-      subwooferEnclosure: "10\" or 12\""
-    };
-
-    // Specific popular cars specs
-    if (make.includes("honda") && model.includes("civic")) {
-      specs.radioSize = "Double-DIN";
-      specs.frontSpeaker = "6.5\"";
-      specs.rearSpeaker = "6.5\"";
-    } else if (make.includes("toyota") && model.includes("tacoma")) {
-      specs.radioSize = "Double-DIN";
-      specs.frontSpeaker = "6x9\"";
-      specs.rearSpeaker = "6.5\"";
-    } else if (make.includes("toyota") && model.includes("camry")) {
-      specs.radioSize = "Double-DIN";
-      specs.frontSpeaker = "6x9\"";
-      specs.rearSpeaker = "6.5\"";
-    } else if (make.includes("toyota") && model.includes("corolla")) {
-      specs.radioSize = "Double-DIN";
-      specs.frontSpeaker = "6.5\"";
-      specs.rearSpeaker = "6.5\"";
-    } else if (make.includes("jeep") && (model.includes("wrangler") || model.includes("gladiator"))) {
-      specs.radioSize = "Double-DIN";
-      specs.frontSpeaker = "6.5\"";
-      specs.rearSpeaker = "6.5\"";
-    } else if (make.includes("ford") && model.includes("f-150")) {
-      specs.radioSize = "Double-DIN";
-      specs.frontSpeaker = "6x9\"";
-      specs.rearSpeaker = "6.5\"";
-    } else if (make.includes("chevrolet") && model.includes("silverado")) {
-      specs.radioSize = "Double-DIN";
-      specs.frontSpeaker = "6.5\"";
-      specs.rearSpeaker = "6.5\"";
-    } else if (make.includes("subaru") && model.includes("outback")) {
-      specs.radioSize = "Double-DIN";
-      specs.frontSpeaker = "6.5\"";
-      specs.rearSpeaker = "6.5\"";
-    } else if (make.includes("bmw")) {
-      specs.radioSize = "Factory Fit";
-      specs.frontSpeaker = "4\"";
-      specs.rearSpeaker = "4\"";
-      specs.subwooferEnclosure = "8\" under-seat";
-    } else if (make.includes("hyundai") && model.includes("equus")) {
-      specs.radioSize = "Factory Fit";
-      specs.frontSpeaker = "6.5\"";
-      specs.rearSpeaker = "6.5\"";
-      specs.subwooferEnclosure = "8\" rear deck";
-    } else if (make.includes("hyundai")) {
-      specs.radioSize = "Double-DIN";
-      specs.frontSpeaker = "6.5\"";
-      specs.rearSpeaker = "6.5\"";
-    }
-
-    return specs;
+  const createSpec = (label, value, available = true) => {
+    const item = Commerce.element("div", { className: "dca-specs-tile" });
+    if (!available) item.classList.add("is-unavailable");
+    item.append(
+      Commerce.element("dt", { className: "dca-specs-tile-label", text: label }),
+      Commerce.element("dd", { className: "dca-specs-tile-value", text: value }),
+    );
+    return item;
   };
 
-  const renderSpecsPanel = () => {
-    const container = document.getElementById("dca-vehicle-specs-panel");
-    if (!container) return;
+  const renderSizes = (card, application) => {
+    const grid = Commerce.element("dl", { className: "dca-specs-grid" });
+    const getSize = (location) => {
+      const value = application?.speakers?.[location];
+      if (value === null) return { value: "Not applicable", available: true };
+      return value && value !== unavailableText
+        ? { value, available: true }
+        : { value: unavailableText, available: false };
+    };
+    const front = getSize("front");
+    const rear = getSize("rear");
+    const dash = getSize("dash");
+    grid.append(
+      createSpec("Front speaker size", front.value, front.available),
+      createSpec("Rear speaker size", rear.value, rear.available),
+      createSpec("Dash speaker size", dash.value, dash.available),
+    );
+    card.append(grid);
+  };
 
-    container.replaceChildren();
+  const renderVehiclePanel = () => {
     const vehicle = Commerce.vehicle?.current;
-    if (!vehicle) {
-      container.style.display = "none";
-      return;
-    }
+    const application = audioFitment?.resolve?.(vehicle) || null;
+    document.querySelectorAll("[data-vehicle-specs-panel]").forEach((container) => {
+      container.replaceChildren();
+      container.hidden = !vehicle;
+      if (!vehicle) return;
 
-    container.style.display = "block";
-    const specs = getVehicleSpecs(vehicle);
-
-    const card = Commerce.element("div", {
-      className: "dca-commerce-specs-card",
-      attrs: {
-        style: "background: rgba(13, 16, 21, 0.4); border: 1px solid var(--line); border-radius: 16px; padding: 12px 20px; margin-top: 15px; display: flex; align-items: center; justify-content: space-between; gap: 15px; flex-wrap: wrap; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);"
-      }
-    });
-
-    const titleEl = Commerce.element("div", {
-      attrs: {
-        style: "display: flex; align-items: center; gap: 8px;"
-      }
-    });
-    titleEl.append(
-      Commerce.element("span", { text: "🚗", attrs: { style: "font-size: 18px;" } }),
-      Commerce.element("strong", {
-        text: `${vehicle.year} ${vehicle.makeName} ${vehicle.modelName} Fits:`,
+      const card = Commerce.element("section", {
+        className: "dca-specs-card",
         attrs: {
-          style: "font-size: 14px; font-weight: 700; color: #fff; letter-spacing: -0.01em;"
-        }
-      })
-    );
-
-    const badges = Commerce.element("div", {
-      attrs: {
-        style: "display: flex; gap: 8px; flex-wrap: wrap;"
-      }
-    });
-
-    const createBadge = (label, value) => {
-      const b = Commerce.element("div", {
-        attrs: {
-          style: "background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 8px; padding: 6px 12px; font-size: 13px; font-weight: 600; color: var(--foreground); display: flex; gap: 6px;"
-        }
+          "aria-label": "Verified Vehicle Audio Fitment",
+          "aria-live": "polite",
+        },
       });
-      b.append(
-        Commerce.element("span", { text: label, attrs: { style: "color: var(--muted);" } }),
-        Commerce.element("strong", { text: value, attrs: { style: "color: var(--blue-bright);" } })
+      const header = Commerce.element("header", { className: "dca-specs-header" });
+      header.append(
+        Commerce.element("h2", {
+          text: "Verified Vehicle Audio Fitment",
+        }),
       );
-      return b;
-    };
+      card.append(header);
 
-    badges.append(
-      createBadge("Front Doors", specs.frontSpeaker),
-      createBadge("Rear Doors", specs.rearSpeaker),
-      createBadge("Dash", specs.radioSize),
-      createBadge("Sub", specs.subwooferEnclosure)
-    );
-
-    card.append(titleEl, badges);
-    container.append(card);
+      renderSizes(card, application);
+      container.append(card);
+    });
   };
 
-  // Render on load and on vehicle change
-  window.addEventListener("DOMContentLoaded", renderSpecsPanel);
-  window.addEventListener("dca:vehicle-change", renderSpecsPanel);
-  // Also register to trigger when DCACommerce is ready
-  setTimeout(renderSpecsPanel, 200);
+  window.addEventListener("dca:vehicle-change", renderVehiclePanel);
+  renderVehiclePanel();
 })();

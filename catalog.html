@@ -11,7 +11,7 @@
     <title>Product Catalog | Dean's Car Audio</title>
     <link rel="icon" type="image/png" href="assets/brand/favicon.png?v=1.2.0" />
     <link rel="apple-touch-icon" href="assets/brand/apple-touch-icon.png?v=1.2.0" />
-    <link rel="stylesheet" href="assets/css/commerce.css?v=1.2.0" />
+    <link rel="stylesheet" href="assets/css/commerce.css?v=1.3.0" />
   </head>
   <body class="dca-commerce-page">
     <div class="dca-commerce-shell">
@@ -50,7 +50,7 @@
 
         <section class="dca-commerce-content" aria-label="Current vehicle">
           <div class="dca-commerce-vehicle-bar" data-vehicle-context></div>
-          <div id="dca-vehicle-specs-panel" style="margin-top: 15px;"></div>
+          <div data-vehicle-specs-panel style="margin-top: 15px;"></div>
         </section>
 
         <section class="dca-commerce-catalog" id="catalog-results" aria-labelledby="catalog-results-title">
@@ -152,21 +152,22 @@
     <script>
       console.log('HTML loaded, scripts starting...');
     </script>
+    <script src="assets/js/commerce/vehicle-audio-fitment-data.js?v=1.3.0"></script>
     <script src="assets/js/commerce/catalog-data.js?v=1.1.1"></script>
     <script>
       console.log('catalog-data.js loaded, DCA_CATALOG_DATA:', typeof window.DCA_CATALOG_DATA);
     </script>
-    <script src="assets/js/commerce/fitment-data.js"></script>
+    <script src="assets/js/commerce/fitment-data.js?v=1.3.0"></script>
     <script src="assets/js/commerce/core.js"></script>
-    <script src="assets/js/commerce/vehicle-context.js"></script>
+    <script src="assets/js/commerce/vehicle-context.js?v=1.3.0"></script>
     <script src="assets/js/commerce/fitment-engine.js"></script>
     <script src="assets/js/commerce/cart-store.js"></script>
     <script src="assets/js/commerce/account-cart-adapter.js"></script>
     <script src="assets/js/commerce/guest-account-merge.js"></script>
     <script src="assets/js/commerce/ui.js?v=1.2.0"></script>
     <script src="assets/js/commerce/shell.js?v=1.1.1"></script>
-    <script src="assets/js/commerce/catalog-page.js?v=1.2.0"></script>
-    <script src="assets/js/commerce/vehicle-specs.js?v=1.1.1"></script>
+    <script src="assets/js/commerce/catalog-page.js?v=1.3.0"></script>
+    <script src="assets/js/commerce/vehicle-specs.js?v=1.3.0"></script>
     <script>
       console.log('All scripts loaded');
     </script>
