@@ -18,7 +18,6 @@
   const createProductVisual = (product, variant = null, large = false) => {
     const visual = el("div", {
       className: `dca-commerce-product-visual is-${product.visualType}${large ? " is-large" : ""}`,
-      attrs: { "aria-hidden": "true" },
     });
     
     const selectedVariant = variant || product.variants[0];
@@ -31,8 +30,10 @@
       className: "dca-commerce-product-image",
       attrs: {
         src: imageUrl,
-        alt: `${product.brand} ${selectedVariant.sku}`,
-        loading: "lazy",
+        alt: `${product.brand} ${product.name}, ${selectedVariant.sku}`,
+        loading: large ? "eager" : "lazy",
+        decoding: "async",
+        ...(large ? { fetchpriority: "high" } : {}),
       },
     });
     visual.append(img);
@@ -94,56 +95,9 @@
     return root;
   };
 
-  const overrideUnknownFit = (result, variantId) => {
-    if (!result || result.status !== "unknown" || !result.vehicle) return result;
-    const product = Commerce.productForVariant.get(variantId);
-    if (!product) return result;
-
-    const vehicle = result.vehicle;
-    const vehicleLabel = `${vehicle.year} ${vehicle.makeName} ${vehicle.modelName}`;
-
-    if (product.category === "receivers") {
-      return {
-        status: "compatible",
-        label: "Fits Your Vehicle",
-        icon: "✓",
-        short: "Fits your vehicle",
-        vehicle,
-        ruleId: null,
-        source: null,
-        conditions: ["Requires a vehicle-specific dash kit and wiring harness for installation."],
-        customerNote: `This receiver fits your ${vehicleLabel}. An aftermarket dash kit, antenna adapter, and wiring harness are required to complete the installation.`,
-        coverage: result.coverage,
-      };
-    } else if (product.category === "speakers") {
-      return {
-        status: "compatible",
-        label: "Fits Your Vehicle",
-        icon: "✓",
-        short: "Fits your vehicle",
-        vehicle,
-        ruleId: null,
-        source: null,
-        conditions: ["May require speaker mounting brackets or harness adapters depending on exact location."],
-        customerNote: `These speakers can be installed in your ${vehicleLabel}. Speaker brackets or plug-and-play wiring adapters are typically required for factory locations.`,
-        coverage: result.coverage,
-      };
-    } else if (product.category === "amplifiers" || product.category === "subwoofers") {
-      return {
-        status: "compatible",
-        label: "Universal Fit",
-        icon: "✓",
-        short: "Universal fit",
-        vehicle,
-        ruleId: null,
-        source: null,
-        conditions: ["Requires amplifier wiring kit or custom enclosure (sold separately)."],
-        customerNote: `This is a universal item that fits your ${vehicleLabel}. Custom wiring and brackets/enclosures are typical for installation.`,
-        coverage: result.coverage,
-      };
-    }
-    return result;
-  };
+  // Compatibility shim for older page modules. Unknown fitment remains unknown
+  // until a real rule or an installer review confirms it.
+  const overrideUnknownFit = (result) => result;
 
   const createProductCard = (product, { preferredVariant = null } = {}) => {
     const productFit = Commerce.fitment.evaluateProduct(product);
@@ -189,8 +143,6 @@
       el("a", { text: product.name, attrs: { href: destination } }),
     );
     const fitRow = el("div", { className: "dca-commerce-card-fit" });
-    // Hide the "Unknown" compatibility badge entirely — only show positive
-    // fit signals (Fits your vehicle / Universal fit). Unknown = render nothing.
     if (activeFit.status !== "unknown") {
       const badge = Commerce.fitment.createBadge(activeFit, true);
       if (selectedVariant) {
@@ -252,20 +204,25 @@
   const createFitmentPanel = (result, { heading = "Compatibility status" } = {}) => {
     const panel = el("div", {
       className: `dca-commerce-fit-panel is-${result.status}`,
-      style: "padding: 20px; border-radius: 16px; border: 1px solid var(--line); background: rgba(13, 16, 21, 0.3); display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 24px;"
     });
     const copy = el("div");
     copy.append(
-      el("span", { style: "font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); display: block; margin-bottom: 5px;", text: heading }),
+      el("span", { className: "dca-commerce-fit-panel-kicker", text: heading }),
       el("h2", {
-        style: "font-size: 17px; font-weight: 700; margin: 0; color: #fff; line-height: 1.2;",
-        text: Commerce.vehicle.current
-          ? `${result.label} for ${Commerce.vehicle.getLabel()}`
-          : result.label,
+        text:
+          result.status === "unknown" && !Commerce.vehicle.current
+            ? "Select a vehicle to check fitment"
+            : Commerce.vehicle.current
+              ? `${result.label} for ${Commerce.vehicle.getLabel()}`
+              : result.label,
         attrs: { id: "product-fitment-heading" },
       }),
     );
-    panel.append(copy, Commerce.fitment.createBadge(result));
+    if (result.status === "unknown") {
+      panel.append(copy);
+    } else {
+      panel.append(copy, Commerce.fitment.createBadge(result));
+    }
     return panel;
   };
 

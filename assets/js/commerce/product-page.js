@@ -114,7 +114,7 @@
 
   const variantPicker = document.querySelector(".dca-commerce-variant-picker");
   if (variantPicker) {
-    variantPicker.style.display = product.variants.length > 1 ? "" : "none";
+    variantPicker.hidden = product.variants.length <= 1;
   }
 
   const syncUrl = () => {
@@ -137,11 +137,27 @@
         note: "This item is not compatible with the selected vehicle.",
       };
     }
+    if (
+      result.status === "conditional" || result.status === "unknown"
+    ) {
+      return {
+        allowed: true,
+        acknowledgement: true,
+        acknowledgementText:
+          result.status === "conditional"
+            ? "I understand this item requires installer review and may need additional parts."
+            : Commerce.vehicle.current
+              ? "I understand fitment has not been confirmed for my selected vehicle."
+              : "I understand this item has not been matched to a vehicle yet.",
+        button: "Add to planning cart",
+        note: "Dean's will confirm fitment, required parts, availability, and final price before purchase.",
+      };
+    }
     return {
       allowed: true,
       acknowledgement: false,
-      button: "Add to cart",
-      note: "Standard shipping & handling applies.",
+      button: "Add to planning cart",
+      note: "Dean's will confirm availability and final price before purchase.",
     };
   };
 
@@ -182,10 +198,11 @@
     );
 
     const result = Commerce.fitment.evaluate(selected.id);
-    const overridden = Commerce.ui.overrideUnknownFit(result, selected.id);
-    fitmentRoot.replaceChildren();
-    fitmentRoot.hidden = true;
-    const gate = purchaseGate(overridden);
+    fitmentRoot.replaceChildren(
+      Commerce.ui.createFitmentPanel(result, { heading: "Vehicle fitment" }),
+    );
+    fitmentRoot.hidden = false;
+    const gate = purchaseGate(result);
     acknowledgementRoot.hidden = !gate.acknowledgement;
     acknowledgementText.textContent = gate.acknowledgementText || "";
     addButton.textContent = gate.button;
@@ -194,7 +211,7 @@
     addButton.dataset.gateAllowed = String(gate.allowed);
     addButton.dataset.needsAcknowledgement = String(gate.acknowledgement);
     addStatus.textContent = gate.note;
-    localAvailability.textContent = "In Stock";
+    localAvailability.textContent = "Confirm availability";
 
     if (sourceLink) {
       sourceLink.href = selected.sourceUrl;
@@ -245,9 +262,9 @@
     }
     quantity.value = "1";
     addStatus.textContent = result.persistent
-      ? `${product.name} is in your guest cart and saved on this device.`
-      : `${product.name} is in your cart for this visit.`;
-    Commerce.ui.toast(`${product.name} added to cart.`);
+      ? `${product.name} is in your planning cart and saved on this device.`
+      : `${product.name} is in your planning cart for this visit.`;
+    Commerce.ui.toast(`${product.name} added to your planning cart.`);
   });
 
   window.addEventListener("dca:vehicle-change", render);

@@ -13,7 +13,8 @@
     const makeId = String(vehicle.makeId || "").trim().slice(0, 20);
     const modelId = String(vehicle.modelId || "").trim().slice(0, 20);
     if (!/^\d{4}$/.test(year) || !makeName || !modelName) return null;
-    const source = vehicle.source === "nhtsa-vpic" ? "nhtsa-vpic" : "handoff";
+    const allowedSources = new Set(["nhtsa-vpic", "verified-fitment", "handoff"]);
+    const source = allowedSources.has(vehicle.source) ? vehicle.source : "handoff";
     return {
       source,
       year,
@@ -115,8 +116,8 @@
         Commerce.element("strong", { text: getLabel() }),
         Commerce.element("p", {
           text: current
-            ? "Status is evaluated per SKU from the partial verified fitment set."
-            : "Choose a vehicle on the homepage. Until then, every vehicle-specific result stays unknown.",
+            ? "See dash, front, and rear speaker sizes below."
+            : "Choose a vehicle to view its speaker sizes.",
         }),
       );
       const link = Commerce.element("a", {
@@ -141,6 +142,10 @@
     },
     getLabel,
     normalize: normalizeVehicle,
+    select(nextVehicle) {
+      if (synchronize(nextVehicle, { announce: true })) renderContext();
+      return current;
+    },
     render: renderContext,
   };
 })();

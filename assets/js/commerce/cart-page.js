@@ -142,7 +142,9 @@
       }),
     );
     const fit = Commerce.element("div", { className: "dca-commerce-cart-line-fit" });
-    fit.append(Commerce.fitment.createBadge(result, true));
+    if (result.status !== "unknown" || result.label !== "Not confirmed") {
+      fit.append(Commerce.fitment.createBadge(result, true));
+    }
     if (archived) {
       fit.append(
         Commerce.element("span", {
@@ -289,7 +291,7 @@
     }
     if (blockedCount) {
       messages.push(
-        `${blockedCount} ${blockedCount === 1 ? "line needs" : "lines need"} fitment confirmation or replacement before checkout.`,
+        `${blockedCount} ${blockedCount === 1 ? "line needs" : "lines need"} fitment confirmation or replacement before purchase.`,
       );
     }
     if (conditionalCount) {
@@ -298,7 +300,7 @@
       );
     }
     messages.push(
-      "Proceed to secure checkout to finalize your order, or call Dean's to confirm pricing and availability.",
+      "Review this plan, then contact Dean's to confirm exact fitment, current price, availability, and installation.",
     );
     riskNote.textContent = messages.join(" ");
     restoreFocus(hasLines);
@@ -318,7 +320,7 @@
   clearYes.addEventListener("click", () => {
     pendingFocus = { lineId: null, control: "product", empty: true };
     Commerce.cart.clear();
-    Commerce.ui.toast("Guest cart cleared.");
+    Commerce.ui.toast("Planning cart cleared.");
   });
 
   Commerce.cart.subscribe(render);

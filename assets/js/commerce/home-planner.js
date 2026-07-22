@@ -71,25 +71,21 @@
     summaryEl.replaceChildren();
     if (vehicle) {
       const vDiv = Commerce.element("div", {
-        style: "margin-bottom: 12px; font-weight: 700; color: var(--blue-bright);",
+        className: "dca-planner-vehicle",
         text: `Vehicle: ${vehicle.year} ${vehicle.makeName} ${vehicle.modelName}`
       });
       summaryEl.append(vDiv);
     }
 
     const titleStrong = Commerce.element("strong", { text: "Selected Upgrades:" });
-    const ul = Commerce.element("ul", {
-      style: "margin: 10px 0 0 16px; padding: 0; list-style-type: disc; display: grid; gap: 6px;"
-    });
+    const ul = Commerce.element("ul");
 
     selectedKeys.forEach((key) => {
       const p = PLANS[key];
       if (p) {
-        const li = Commerce.element("li", {
-          style: "color: #fff; font-size: 13.5px;"
-        });
+        const li = Commerce.element("li");
         li.append(
-          Commerce.element("strong", { text: p.title, style: "color: var(--blue-bright);" }),
+          Commerce.element("strong", { text: p.title }),
           document.createTextNode(` · ${p.desc}`)
         );
         ul.append(li);

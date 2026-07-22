@@ -25,7 +25,7 @@
       short: "Explicit source conflict or exclusion",
     },
     unknown: {
-      label: "Unknown",
+      label: "Not confirmed",
       icon: "?",
       short: "Fit has not been verified",
     },
