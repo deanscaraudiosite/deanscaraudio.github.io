@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "releaseId": "flea-market-photo-catalog-2026-07-20",
-  "checkedAt": "2026-07-20",
+  "checkedAt": "2026-07-22",
   "catalog": {
     "classification": "official-source-curated",
     "localInventoryConnected": false,
@@ -55,9 +55,11 @@
     "mayDecideAudioFitment": false
   },
   "fitment": {
-    "currentCoverage": "empty",
+    "currentCoverage": "partial",
     "absencePolicy": "unknown",
-    "currentSource": "None — the photo catalog contains no vehicle-fitment data.",
+    "currentSource": "Source-backed Aston Martin DBX documentation and Scosche Ford Focus/Toyota Camry speaker-size applications.",
+    "compatibleProductRules": 15,
+    "unsupportedVehicleDisplay": "Fitment information unavailable",
     "productionProvider": "SEMA Data reseller API",
     "productionProviderStatus": "requires reseller enrollment and individual brand approval",
     "productionProviderUrl": "https://apps.semadata.org/sdapi/v2"
