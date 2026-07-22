@@ -35,6 +35,8 @@ const EXPECTED_VERIFIED_VEHICLES = Object.freeze([
   { year: "2022", makeName: "Aston Martin", modelName: "DBX" },
   { year: "2021", makeName: "Aston Martin", modelName: "DBX" },
   { year: "2020", makeName: "Aston Martin", modelName: "DBX" },
+  { year: "2013", makeName: "BMW", modelName: "528i" },
+  { year: "2013", makeName: "BMW", modelName: "528i xDrive" },
   { year: "2011", makeName: "Ford", modelName: "Focus" },
   { year: "2011", makeName: "Toyota", modelName: "Camry" },
   { year: "2010", makeName: "Ford", modelName: "Focus" },
@@ -113,6 +115,12 @@ const MODEL_RESPONSES = Object.freeze({
     "Multipurpose Passenger Vehicle": Object.freeze(["Escape", "Mustang"]),
     Truck: Object.freeze(["F-150"]),
     Trailer: Object.freeze(["Affordable Aluminum"]),
+  }),
+  "2013|BMW": Object.freeze({
+    "Passenger Car": Object.freeze(["528i xDrive", "528i", "528i"]),
+    "Multipurpose Passenger Vehicle": Object.freeze([]),
+    Truck: Object.freeze([]),
+    Trailer: Object.freeze(["Unrelated Trailer"]),
   }),
   "2018|Toyota": Object.freeze({
     "Passenger Car": Object.freeze(["Camry"]),
@@ -696,12 +704,14 @@ const loadSelector = (modelResponses = MODEL_RESPONSES) => {
   return runtime;
 };
 
-const encodeVehicle = (vehicle) => encodeURIComponent(JSON.stringify(vehicle));
-
-const loadCatalog = (vehicle) => {
+const loadCatalog = (vehicle, { fit = "compatible" } = {}) => {
+  const catalogParams = new URLSearchParams({
+    vehicle: JSON.stringify(vehicle),
+  });
+  if (fit) catalogParams.set("fit", fit);
   const runtime = createRuntime({
     page: "catalog.html",
-    search: `?vehicle=${encodeVehicle(vehicle)}&fit=compatible`,
+    search: `?${catalogParams.toString()}`,
     fixture: "catalog",
   });
   loadSharedCommerce(runtime);
@@ -828,6 +838,7 @@ test("the selector exposes every configured year and make and registers every re
   const expectedModels = {
     "2024|Aston Martin": ["DBX", "DBX 707", "DBX707", "Valkyrie"],
     "2023|Ford": ["Escape", "F-150", "Mustang"],
+    "2013|BMW": ["528i", "528i xDrive"],
     "2018|Toyota": ["Camry", "RAV4", "Tacoma"],
   };
 
@@ -930,9 +941,31 @@ test("model selection immediately renders only Front, Rear, and Dash sizes", asy
   assert.ok(!optionValues(runtime.model).includes("Unrelated Trailer"));
 });
 
-test("selector submit redirects to the compatible shop view with the selected vehicle", async () => {
-  const runtime = loadSelector();
-  await selectVehicle(runtime, { year: "2009", makeName: "Ford", modelName: "Focus" });
+test("2013 BMW 528i renders its verified front and rear sizes without guessing dash fitment", async () => {
+  const runtime = loadSelector({ "2013|BMW": MODEL_RESPONSES["2013|BMW"] });
+  await selectVehicle(runtime, { year: "2013", makeName: "BMW", modelName: "528i" });
+
+  const card = getCard(runtime);
+  assert.equal(card.getAttribute("aria-label"), "Verified Vehicle Audio Fitment");
+  assert.deepEqual(getCardLabels(card), [
+    "Front speaker size",
+    "Rear speaker size",
+    "Dash speaker size",
+  ]);
+  assert.deepEqual(getCardValues(card), [
+    "4 in (100 mm)",
+    "4 in (100 mm)",
+    "Fitment information unavailable",
+  ]);
+  assert.equal(card.querySelectorAll("dt").length, 3);
+  assert.equal(card.querySelectorAll("dd").length, 3);
+  assert.equal(card.querySelectorAll("p").length, 0);
+  assert.equal(card.querySelectorAll("ul").length, 0);
+});
+
+test("selector submit redirects to the unfiltered shop with the selected vehicle", async () => {
+  const runtime = loadSelector({ "2013|BMW": MODEL_RESPONSES["2013|BMW"] });
+  await selectVehicle(runtime, { year: "2013", makeName: "BMW", modelName: "528i" });
   const submitEvent = new FakeEvent("submit", { cancelable: true });
   runtime.form.dispatchEvent(submitEvent);
 
@@ -940,17 +973,17 @@ test("selector submit redirects to the compatible shop view with the selected ve
   assert.equal(runtime.assignedUrls.length, 1);
   const redirect = new URL(runtime.assignedUrls[0], "https://example.test/");
   assert.equal(redirect.pathname, "/catalog.html");
-  assert.equal(redirect.searchParams.get("fit"), "compatible");
+  assert.equal(redirect.searchParams.has("fit"), false);
   const vehicle = JSON.parse(redirect.searchParams.get("vehicle"));
-  assert.equal(vehicle.year, "2009");
-  assert.equal(vehicle.makeName, "Ford");
-  assert.equal(vehicle.modelName, "Focus");
+  assert.equal(vehicle.year, "2013");
+  assert.equal(vehicle.makeName, "BMW");
+  assert.equal(vehicle.modelName, "528i");
   assert.equal(runtime.fetchCalls.length, VEHICLE_TYPES.length);
   assert.deepEqual(
     runtime.fetchCalls.map(({ vehicleType }) => vehicleType).sort(),
     [...VEHICLE_TYPES].sort(),
   );
-  assert.ok(!optionValues(runtime.model).includes("Milford Welding"));
+  assert.ok(!optionValues(runtime.model).includes("Unrelated Trailer"));
 });
 
 test("fitment rules return exact, different product sets for Focus, Camry, and DBX", () => {
@@ -1020,6 +1053,36 @@ test("catalog fit=compatible renders only compatible product families and keeps 
   assert.deepEqual(getCardValues(card), [
     "6 x 9 in",
     "6 x 9 in",
+    "Fitment information unavailable",
+  ]);
+  assert.equal(runtime.fetchCalls.length, 0);
+});
+
+test("catalog reached from the selector shows every product by default and keeps fitment visible", () => {
+  const vehicle = { year: "2013", makeName: "BMW", modelName: "528i" };
+  const runtime = loadCatalog(vehicle, { fit: null });
+  const renderedProducts = runtime.grid.children
+    .map((card) => card.getAttribute("data-rendered-product-id"))
+    .filter(Boolean)
+    .sort();
+  const allProducts = Array.from(
+    runtime.window.DCACommerce.catalog.products,
+    (product) => product.id,
+  ).sort();
+
+  assert.deepEqual(renderedProducts, allProducts);
+  assert.equal(runtime.compatibility.value, "all");
+  assert.equal(runtime.heading.textContent, "All products");
+
+  const card = getCard(runtime);
+  assert.deepEqual(getCardLabels(card), [
+    "Front speaker size",
+    "Rear speaker size",
+    "Dash speaker size",
+  ]);
+  assert.deepEqual(getCardValues(card), [
+    "4 in (100 mm)",
+    "4 in (100 mm)",
     "Fitment information unavailable",
   ]);
   assert.equal(runtime.fetchCalls.length, 0);

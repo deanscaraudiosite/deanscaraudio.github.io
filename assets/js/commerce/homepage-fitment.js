@@ -209,7 +209,7 @@
     const selected = selectCurrentVehicle();
     if (!selected || typeof Commerce?.urlForVehicle !== "function") return;
     window.location.assign(
-      Commerce.urlForVehicle("catalog.html", { fit: "compatible" }, selected),
+      Commerce.urlForVehicle("catalog.html", {}, selected),
     );
   });
 

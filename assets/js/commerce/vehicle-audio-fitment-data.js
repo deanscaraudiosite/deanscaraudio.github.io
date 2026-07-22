@@ -35,6 +35,47 @@
       ]),
     }),
     Object.freeze({
+      id: "bmw-528i-2013",
+      make: "bmw",
+      selectorMake: "BMW",
+      selectorModels: Object.freeze(["528i", "528i xDrive"]),
+      models: Object.freeze([
+        "528i",
+        "528i sedan",
+        "528i xdrive",
+        "528i xdrive sedan",
+      ]),
+      yearStart: 2013,
+      yearEnd: 2013,
+      sourceStatus: "Manufacturer application guides documented",
+      verifiedAt: "2026-07-22",
+      speakers: Object.freeze({
+        front: "4 in (100 mm)",
+        rear: "4 in (100 mm)",
+        // The center-dash location depends on the factory audio option. The
+        // year/make/model selector cannot distinguish those systems safely.
+        dash: UNAVAILABLE,
+      }),
+      sources: Object.freeze([
+        Object.freeze({
+          label: "Audiotec Fischer MATCH BMW speaker application matrix",
+          url: "https://new.audiotec-fischer.de/media/pdf/23/a3/18/Infoflyer-MATCH-Lautsprecher-Uebersicht-BMW_Web_16-09-20.pdf",
+        }),
+        Object.freeze({
+          label: "Audiotec Fischer MATCH MS 42C-BMW.1 specifications",
+          url: "https://www.audiotec-fischer.de/en/product-archive/speakers/ms-42c-bmw.1",
+        }),
+        Object.freeze({
+          label: "Focal Inside BMW 5 Series F10 configuration",
+          url: "https://www.focal.com/es/focal-inside/marcas/bmw/bmw-serie-5-f10",
+        }),
+        Object.freeze({
+          label: "BMW model-year 2013 audio configuration",
+          url: "https://www.press.bmwgroup.com/canada/article/attachment/T0128785EN/194270",
+        }),
+      ]),
+    }),
+    Object.freeze({
       id: "ford-focus-2008-2011",
       make: "ford",
       selectorMake: "Ford",
